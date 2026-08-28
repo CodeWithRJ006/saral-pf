@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 export async function fetchChatCompletion(messages: { role: string; content: string }[], maxTokens = 250, temperature = 0.3) {
   try {
@@ -35,3 +35,4 @@ export async function fetchChatCompletion(messages: { role: string; content: str
     return "ERROR_API_FAILED";
   }
 }
+
