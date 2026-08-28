@@ -1,0 +1,421 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { motion } from "framer-motion";
+import { useScenario } from "@/context/ScenarioContext";
+import Link from "next/link";
+import { fetchChatCompletion } from "@/lib/openai";
+
+const data = [
+  { year: "2020", employee: 40000, employer: 38000, eps: 15000 },
+  { year: "2021", employee: 70000, employer: 65000, eps: 25000 },
+  { year: "2022", employee: 110000, employer: 100000, eps: 35000 },
+  { year: "2023", employee: 160000, employer: 145000, eps: 48000 },
+  { year: "2024", employee: 210000, employer: 190000, eps: 65000 },
+  { year: "2025", employee: 275000, employer: 250000, eps: 85000 },
+  { year: "2026", employee: 350000, employer: 320000, eps: 105000 },
+];
+
+const PreClaimDiagnostic = ({ profile }: { profile: any }) => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 500); // ~500ms
+    const t2 = setTimeout(() => setStep(2), 900); // +400ms (900ms total)
+    const t3 = setTimeout(() => setStep(3), 1400); // +500ms (1.4s total, under 1.5s)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+
+  return (
+    <div className="border border-[#131215]/10 bg-white p-6">
+      <div className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/40 mb-6 font-sans">
+        PRE-CLAIM CHECKS
+      </div>
+      
+      <div className="space-y-4 font-mono text-xs">
+        {/* Check 1 */}
+        <div className="flex items-center justify-between">
+          <span className="text-[#131215]/70">Checking UAN status...</span>
+          {step >= 1 && (
+            <motion.span 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-[#131215]/10 text-[#131215] bg-[#F7F5F0]"
+            >
+              <svg className="w-3 h-3 text-[#2c524b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <motion.path 
+                  initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4 }}
+                  strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" 
+                />
+              </svg>
+              <span className="uppercase text-[9px] font-sans font-medium tracking-widest">Verified</span>
+            </motion.span>
+          )}
+        </div>
+
+        {/* Check 2 */}
+        {step >= 2 && (
+          <div className="flex items-center justify-between">
+            <span className="text-[#131215]/70">Cross-referencing UIDAI records...</span>
+            {step >= 3 && (
+              <motion.span 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-red-700/20 bg-red-50 text-red-700"
+              >
+                <span className="uppercase text-[9px] font-sans font-medium tracking-widest">Failed — 1-char mismatch</span>
+              </motion.span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Reveal Block */}
+      {step >= 3 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="mt-8 pt-8 border-t border-[#131215]/10 font-sans"
+        >
+          {/* Custom Indigo Ink Illustration */}
+          <div className="mb-6 w-full h-40 bg-[#F7F5F0] border border-[#131215]/5 flex items-center justify-center overflow-hidden relative">
+            <svg viewBox="0 0 200 120" className="w-full h-full text-[#2c524b]" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+              <g strokeWidth="0.5" strokeOpacity="0.3">
+                <path d="M 10 90 L 100 0 M 20 100 L 120 0 M 30 110 L 140 0 M 40 120 L 160 0 M 60 120 L 180 0 M 80 120 L 200 0 M 100 120 L 220 0" />
+              </g>
+              {/* Figure */}
+              <path d="M 100 45 C 90 45 85 55 85 65 C 85 70 75 85 75 120 L 125 120 C 125 85 115 70 115 65 C 115 55 110 45 100 45 Z" />
+              <path d="M 95 65 C 95 65 100 70 105 65" />
+              {/* Left Doc */}
+              <path d="M 45 55 L 75 45 L 65 85 L 35 95 Z" fill="#F7F5F0" />
+              <path d="M 48 65 L 60 61 M 45 75 L 55 72" />
+              {/* Right Doc */}
+              <path d="M 155 55 L 125 45 L 135 85 L 165 95 Z" fill="#F7F5F0" />
+              <path d="M 148 61 L 152 65 M 135 72 L 145 75" />
+              {/* Error line */}
+              <path d="M 80 40 C 90 25 110 25 120 40" strokeDasharray="3 3" />
+            </svg>
+          </div>
+          
+          <h3 className="font-serif text-2xl text-[#131215] mb-2">This will cause a rejection.</h3>
+          <p className="text-sm text-[#131215]/70 mb-6 leading-relaxed">
+            Aadhaar: <span className="font-medium">{profile.panName}</span> · UAN record: <span className="font-medium">{profile.name}</span> — EPFO rejects claims over exact-match failures like this.
+          </p>
+          <Link 
+            href="/claims?fix=true"
+            className="inline-flex min-h-[44px] items-center justify-center bg-[#2c524b] px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase transition-colors hover:bg-[#2c524b]/90 w-full"
+          >
+            Generate Joint Declaration
+          </Link>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+export default function DashboardPage() {
+  const { profile, scenario, setScenario } = useScenario();
+  const hasMismatch = scenario === "MISMATCH";
+
+  const totalCorpus = 350000 + 320000 + 105000;
+
+  const defaultFixPlan = "1. Launch the Auto-Fix workflow below to generate a digital Joint Declaration.\n2. We will automatically forward this to TechCorp India Pvt Ltd for their digital signature.\n3. Once approved, the field office will process your settlement without rejection.";
+    
+  const [aiFixPlan, setAiFixPlan] = useState<string>(defaultFixPlan);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [wealthError, setWealthError] = useState(false); // Can be toggled
+
+  const handleRegenerateLive = async () => {
+    setIsAiLoading(true);
+    const res = await fetchChatCompletion([{
+      role: "user",
+      content: "Generate a 3-step plain-English action plan for an Indian citizen to fix a name mismatch between their Aadhaar (Rahul Sharma) and EPFO UAN record (R. Sharma) so their PF withdrawal claim is not rejected. Number the steps. Be specific. Max 60 words total."
+    }], 150);
+    
+    setAiFixPlan(res === "ERROR_API_FAILED" ? defaultFixPlan : res);
+    setIsAiLoading(false);
+  };
+
+  return (
+    <div className="space-y-12">
+      <header className="border-b border-[#131215]/10 pb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="font-serif text-4xl font-medium tracking-wide text-[#131215]">Hey, {profile.name.split(' ')[0]}.</h1>
+            <p className="text-[10px] tracking-widest text-[#131215]/40 uppercase mt-2">Your Provident Fund, demystified.</p>
+          </div>
+          
+          <div className="relative">
+            <select 
+              value={scenario}
+              onChange={(e) => setScenario(e.target.value as any)}
+              className="appearance-none cursor-pointer bg-[#131215] text-[#F7F5F0] px-6 py-3 pr-10 text-[10px] font-medium tracking-widest uppercase rounded-sm border border-transparent hover:bg-[#131215]/90 transition-colors focus:outline-none"
+            >
+              <option value="CLEAN">Check: All Clear</option>
+              <option value="MISMATCH">Check: Name Mismatch</option>
+              <option value="MERGE">Check: Branch Merge</option>
+              <option value="NOMINATION">Check: Missing Nomination</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#F7F5F0]">
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
+        
+        {/* Compact Activity Strip */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-[10px] font-medium tracking-widest uppercase text-[#131215]/60">
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-[#131215]/20" />
+            <span>Form 19 filed &middot; 8 days ago</span>
+          </div>
+          {hasMismatch && (
+            <div className="flex items-center gap-2 text-red-700">
+              <div className="h-1.5 w-1.5 rounded-full bg-red-700" />
+              <span>KYC mismatch flagged &middot; 8 days ago</span>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
+        {/* Left Column - Big Data */}
+        <div className="col-span-1 lg:col-span-2 space-y-12">
+          
+          {/* Corpus */}
+          <section>
+            <p className="text-[10px] font-medium text-[#131215]/40 uppercase tracking-widest mb-4">Total Corpus</p>
+            <div className="flex items-baseline gap-4 mb-8">
+              <h2 className="font-serif text-6xl text-[#131215] tabular-nums">
+                ₹{(totalCorpus / 100000).toFixed(2)}L
+              </h2>
+              <span className="text-[9px] font-medium tracking-widest uppercase text-amber-700 border border-amber-700/20 bg-amber-50 px-1.5 py-0.5 rounded-sm">
+                (Simulated)
+              </span>
+            </div>
+
+            {/* Chart Area */}
+            <div className="h-[240px] w-full border border-[#131215]/10 bg-white p-4 relative">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[10px] font-medium tracking-widest text-[#131215]/40 uppercase">Growth Trajectory</p>
+                <button 
+                  onClick={() => setWealthError(!wealthError)}
+                  className="flex h-11 w-11 items-center justify-center text-[#131215]/20 hover:text-[#131215] transition-colors -mr-2"
+                  title="Toggle Error State"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </button>
+              </div>
+
+              {wealthError ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm z-10 text-center">
+                  <svg className="h-10 w-10 text-[#131215]/40 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="square" strokeLinejoin="miter" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                  </svg>
+                  <p className="text-sm font-medium text-[#131215] mb-4">Could not load balance history</p>
+                  <button 
+                    onClick={() => setWealthError(false)}
+                    className="min-h-[44px] border border-[#131215]/10 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-[#131215] uppercase transition-colors hover:bg-[#131215]/5"
+                  >
+                    Refresh Data
+                  </button>
+                </div>
+              ) : (
+                <div className="h-[calc(100%-2rem)] w-full overflow-x-auto overflow-y-hidden pb-4 -mb-4">
+                  <div className="min-w-[500px] h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorEmployee" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#131215" stopOpacity={0.15}/>
+                            <stop offset="95%" stopColor="#131215" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorEmployer" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2c524b" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#2c524b" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorEps" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#131215" stopOpacity={0.05}/>
+                            <stop offset="95%" stopColor="#131215" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis 
+                          dataKey="year" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: "#131215", opacity: 0.4, fontSize: 10 }}
+                          dy={10}
+                        />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#131215', border: 'none', borderRadius: '0px', color: '#F7F5F0', padding: "12px" }}
+                          itemStyle={{ color: '#F7F5F0', fontSize: '12px' }}
+                          labelStyle={{ color: 'rgba(247,245,240,0.6)', marginBottom: '8px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                          formatter={(value: any) => [`₹${Number(value).toLocaleString()} (Simulated)`, undefined]}
+                        />
+                        <Area type="monotone" dataKey="eps" stackId="1" stroke="#131215" strokeOpacity={0.2} strokeWidth={1} fill="url(#colorEps)" />
+                        <Area type="monotone" dataKey="employer" stackId="1" stroke="#2c524b" strokeWidth={1.5} fill="url(#colorEmployer)" />
+                        <Area type="monotone" dataKey="employee" stackId="1" stroke="#131215" strokeWidth={2} fill="url(#colorEmployee)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex gap-6 text-[10px] font-medium tracking-widest uppercase text-[#131215]/40">
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#131215]"></div> Employee</div>
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#2c524b]"></div> Employer</div>
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#131215]/10"></div> EPS</div>
+            </div>
+            <p className="text-xs text-[#131215]/60">
+              Corpus has grown ~11% over the last 12 months.
+            </p>
+          </div>
+
+          {/* New Modules: Contributions & Claims to Track */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 pt-8 border-t border-[#131215]/10">
+            {/* Recent Contributions */}
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[10px] font-medium uppercase tracking-widest text-[#131215]/40">
+                  Recent Contributions
+                </h3>
+                <span className="text-[9px] font-medium tracking-widest uppercase text-amber-700 border border-amber-700/20 bg-amber-50 px-1.5 py-0.5 rounded-sm">
+                  (Simulated)
+                </span>
+              </div>
+              
+              <div className="border border-[#131215]/10 bg-white">
+                <div className="grid grid-cols-3 border-b border-[#131215]/5 px-4 py-3 bg-[#F7F5F0]">
+                  <span className="text-[9px] uppercase tracking-widest text-[#131215]/40">Month</span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#131215]/40 text-right">Employee</span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#131215]/40 text-right">Employer</span>
+                </div>
+                {[
+                  { month: "Aug", ee: "4,500", er: "4,500" },
+                  { month: "Jul", ee: "4,500", er: "4,500" },
+                  { month: "Jun", ee: "4,500", er: "4,500" },
+                  { month: "May", ee: "4,500", er: "4,500" },
+                ].map((row, idx) => (
+                  <div key={idx} className="grid grid-cols-3 px-4 py-3 border-b border-[#131215]/5 last:border-b-0">
+                    <span className="text-xs text-[#131215]/70 font-medium">{row.month}</span>
+                    <span className="text-sm font-serif tabular-nums text-right text-[#131215]">₹{row.ee}</span>
+                    <span className="text-sm font-serif tabular-nums text-right text-[#131215]/60">₹{row.er}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Claims to Track */}
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[10px] font-medium uppercase tracking-widest text-[#131215]/40">
+                  Claims to Track
+                </h3>
+              </div>
+              
+              <div className="border border-[#131215]/10 bg-white flex flex-col">
+                <Link href="/claims" className="group flex items-center justify-between px-4 py-4 border-b border-[#131215]/5 hover:bg-[#F7F5F0] transition-colors">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-[#131215] font-medium group-hover:text-[#2c524b] transition-colors">Form 19 (Final Settlement)</span>
+                    <span className="text-[10px] font-mono text-[#131215]/40 uppercase tracking-widest">PF-98472-F19</span>
+                  </div>
+                  {hasMismatch ? (
+                    <span className="inline-flex px-2 py-0.5 border border-red-700/20 bg-red-50 text-red-700 uppercase text-[9px] font-medium tracking-widest whitespace-nowrap">
+                      Delayed
+                    </span>
+                  ) : (
+                    <span className="inline-flex px-2 py-0.5 border border-[#2c524b]/20 bg-[#2c524b]/5 text-[#2c524b] uppercase text-[9px] font-medium tracking-widest whitespace-nowrap">
+                      Under Review
+                    </span>
+                  )}
+                </Link>
+
+                <Link href="/claims" className="group flex items-center justify-between px-4 py-4 hover:bg-[#F7F5F0] transition-colors">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-[#131215] font-medium group-hover:text-[#2c524b] transition-colors">Form 31 (Advance)</span>
+                    <span className="text-[10px] font-mono text-[#131215]/40 uppercase tracking-widest">PF-34221-F31</span>
+                  </div>
+                  <span className="inline-flex px-2 py-0.5 border border-[#131215]/10 text-[#131215]/60 uppercase text-[9px] font-medium tracking-widest whitespace-nowrap">
+                    Settled
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Smart KYC & Mismatch Engine */}
+        <div className="col-span-1 flex flex-col">
+          <p className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/40 mb-6 border-b border-[#131215]/10 pb-2">
+            Identity & KYC
+          </p>
+          
+          <div className="space-y-6">
+            <div className="border-l border-[#131215]/20 pl-4 py-1">
+              <p className="text-[10px] font-medium text-[#131215]/40 uppercase tracking-widest mb-1">Bank IFSC</p>
+              <p className="text-sm font-medium text-[#131215]">HDFC •••• 4012</p>
+              <p className="text-[10px] text-[#131215]/40 uppercase tracking-widest mt-2 border border-[#131215]/10 border-dashed inline-block px-1.5 py-0.5 rounded-sm">Verified</p>
+            </div>
+
+            {hasMismatch ? (
+              <>
+                <PreClaimDiagnostic profile={profile} />
+                
+                {/* AI Fix Plan */}
+                <div className="mt-6 border border-[#131215]/10 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {isAiLoading ? (
+                        <motion.div 
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="h-1.5 w-1.5 rounded-full bg-[#2c524b]" 
+                        />
+                      ) : (
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#2c524b]" />
+                      )}
+                      <h3 className="text-[10px] font-medium tracking-widest uppercase text-[#131215]">Saral Recommended Action</h3>
+                    </div>
+                  </div>
+                  
+                  {isAiLoading ? (
+                    <div className="space-y-2 animate-pulse mb-4">
+                      <div className="h-2 w-full bg-[#131215]/10" />
+                      <div className="h-2 w-5/6 bg-[#131215]/10" />
+                      <div className="h-2 w-4/6 bg-[#131215]/10" />
+                    </div>
+                  ) : (
+                    <p className="text-xs leading-relaxed text-[#131215]/80 whitespace-pre-line mb-4">
+                      {aiFixPlan}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center justify-between border-t border-[#131215]/10 pt-3">
+                    <p className="text-[9px] uppercase tracking-widest text-[#131215]/40">
+                      AI guidance — verify with official sources.
+                    </p>
+                    <button 
+                      onClick={handleRegenerateLive}
+                      disabled={isAiLoading}
+                      className="text-[9px] uppercase tracking-widest text-[#2c524b] font-medium hover:opacity-70 transition-opacity"
+                    >
+                      Regenerate Live
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="border-l border-[#131215]/20 pl-4 py-1">
+                <p className="text-[10px] font-medium text-[#131215]/40 uppercase tracking-widest mb-1">Aadhaar Profile</p>
+                <p className="text-sm font-medium text-[#131215]">Perfect Match</p>
+                <p className="text-[10px] text-[#131215]/40 uppercase tracking-widest mt-2 border border-[#131215]/10 border-dashed inline-block px-1.5 py-0.5 rounded-sm">Ready for Auto-Claims</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
