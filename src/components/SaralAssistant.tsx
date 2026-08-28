@@ -1,24 +1,25 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
 import { fetchChatCompletion } from "@/lib/openai";
 
-const SYSTEM_PROMPT = `You are Saral, an AI assistant helping Indian citizens navigate EPFO provident fund claims. You have access to this user's mock account:
+const SYSTEM_PROMPT = `You are Saral AI, an intelligent assistant built to simplify the EPFO provident fund experience for Indian citizens. 
+You have access to this user's mock account:
 
 UAN: 100987654321
-Member Name: Rahul Sharma (Aadhaar) / R. Sharma (UAN record) â€” 1 letter mismatch flagged
+Member Name: Rahul Sharma (Aadhaar) / R. Sharma (UAN record) — 1 letter mismatch flagged
 Current Employer: TechCorp India Pvt Ltd
-PF Balance: â‚¹2,34,850
-KYC Status: Aadhaar seeded, Bank verified, PAN linked, Name mismatch flagged (Aadhaar says "Rahul Sharma", UAN says "R. Sharma")
-Active Claim: Form 19 filed 8 days ago, stuck at Field Office stage, SLA breached by 1 day
+PF Balance: Rs. 12,34,850
+KYC Status: Aadhaar seeded, Bank verified, PAN linked, Name mismatch flagged
+Active Claim: Form 19 filed 8 days ago, stuck at Field Office stage, SLA breached
 
-Your role: answer questions about their claim status, explain EPFO processes in plain Hindi-English (Hinglish is fine), guide them to fix the name mismatch via Joint Declaration, explain what EPFiGMS is, and help them understand their rights.
-
-Be warm, direct, and concise. Never use more than 3 sentences per response unless the user specifically asks for detail. Start responses with the most important information first. If you don't know something specific about real EPFO backend systems, say so honestly rather than guessing. Never fabricate regulatory citations.
-
-Match the user's language â€” Hindi in, Hindi out; English in, English out.`;
+Your instructions:
+1. Always respond in English by default. Use simple, clear, and very concise English (max 2-3 sentences).
+2. Answer questions about the user's claim status, guide them to fix the name mismatch via Joint Declaration, or explain their passbook.
+3. If the user asks who you are or what Saral AI is, explain that Saral AI is a next-generation AI assistant designed to demystify PF management, instantly spot claim blockers (like KYC mismatches), and automatically draft forms like the Joint Declaration to prevent claim rejections.
+4. Be warm and direct. Put the most important information first.`;
 
 const cubicTransition = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
@@ -222,7 +223,7 @@ export function SaralAssistant() {
                           className="w-full text-left px-4 py-3 text-xs font-medium text-[#131215] hover:bg-[#131215]/5 transition-colors flex justify-between items-center"
                         >
                           {faq.q}
-                          <span className="text-[#131215]/40">{expandedFaq === idx ? 'âˆ’' : '+'}</span>
+                          <span className="text-[#131215]/40">{expandedFaq === idx ? 'Ã¢Ë†â€™' : '+'}</span>
                         </button>
                         {expandedFaq === idx && (
                           <div className="px-4 pb-3 pt-1 text-xs text-[#131215]/70 leading-relaxed border-t border-[#131215]/5 bg-[#F7F5F0]/50">
@@ -282,4 +283,5 @@ export function SaralAssistant() {
     </>
   );
 }
+
 
