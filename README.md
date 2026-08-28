@@ -12,7 +12,7 @@ A modernized, AI-native redesign of the EPFO (Employees' Provident Fund Organisa
 
 ## 🧠 AI Integration
 
-- **LLM Auto-Fix Agent (OpenAI & Codex)**: The core recommendation engine and Joint Declaration generator is powered by OpenAI. It analyzes the specific mismatch criteria (e.g., Aadhaar name vs UAN name) and generates a 3-step actionable plan along with a correctly formatted legal document to submit to the field office.
+- **LLM Auto-Fix Agent (OpenAI & Codex)**: The core recommendation engine and Joint Declaration generator is powered by OpenAI and Codex. It analyzes the specific mismatch criteria (e.g., Aadhaar name vs UAN name) and generates a 3-step actionable plan along with a correctly formatted legal document to submit to the field office.
 - **Pixel Art Visuals (OpenAI / DALL-E)**: The beautiful, anonymous pixel-art illustrations featured on the login screen were generated via AI to maintain strict UI compliance (no logos/text) while adding character and warmth to the neo-brutalist design language.
 
 ## 🏗️ Architecture Flow
