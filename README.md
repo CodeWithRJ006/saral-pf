@@ -17,7 +17,7 @@ A modernized, AI-native redesign of the EPFO (Employees' Provident Fund Organisa
 
 ## 🏗️ Architecture Flow
 
-\\\mermaid
+```mermaid
 graph TD
     A[User] --> B(Next.js Frontend)
     B --> C{Context Provider / Scenario Engine}
@@ -34,7 +34,7 @@ graph TD
     B --> K[Passbook Ledger]
     B --> L[Claims Tracker]
     B --> M[Grievance Engine]
-\\\
+```
 
 ## 💻 Tech Stack
 
@@ -47,17 +47,17 @@ graph TD
 ## 🛠️ Local Development
 
 1. Clone the repository:
-   \\\ash
+   ```bash
    git clone https://github.com/CodeWithRJ006/saral-pf.git
-   \\\
+   ```
 2. Install dependencies:
-   \\\ash
+   ```bash
    npm install
-   \\\
+   ```
 3. Run the development server:
-   \\\ash
+   ```bash
    npm run dev
-   \\\
+   ```
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📄 License
