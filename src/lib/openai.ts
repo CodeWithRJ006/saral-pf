@@ -2,13 +2,18 @@
 
 export async function fetchChatCompletion(messages: { role: string; content: string }[], maxTokens = 250, temperature = 0.3) {
   try {
-    const k1 = "gsk_MKNVce6qzzxs6sDI2CYFWG";
-    const k2 = "dyb3FY5asoRW7BXNf17FJo7mpDLlMf";
+    const apiKey = process.env.GROQ_API_KEY;
+    
+    if (!apiKey) {
+      console.warn("GROQ_API_KEY is missing from environment variables");
+      return "ERROR_API_FAILED";
+    }
+
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": Bearer \\,
+        "Authorization": Bearer \,
       },
       body: JSON.stringify({
         model: "groq/compound",
