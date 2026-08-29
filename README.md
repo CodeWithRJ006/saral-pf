@@ -1,46 +1,25 @@
-﻿# Saral PF 🇮🇳
+# Saral PF ????
 
 A modernized, AI-native redesign of the EPFO (Employees' Provident Fund Organisation) member portal. Saral PF is built to demystify provident fund management, proactively prevent claim rejections, and offer an ultra-clean, neo-brutalist interface for Indian citizens.
 
-### 🟢 Live Demo
+### ?? Live Demo
 **Access the live application here:** [https://saral-pf.vercel.app/](https://saral-pf.vercel.app/)
 
-## 🚀 Quick Deploy
+## ?? Quick Deploy
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FCodeWithRJ006%2Fsaral-pf)
 
 ---
 
-## 🗺️ How Saral PF Works (The User Journey)
+## ??? How Saral PF Works (The User Journey)
 
 The traditional PF portal lets you submit a claim and wait 20 days, only to get rejected for a tiny data mismatch. **Saral PF catches the error before you even apply** and uses AI to instantly fix it.
 
-`mermaid
-sequenceDiagram
-    autonumber
-    actor Citizen as User
-    participant Saral as Saral PF Dashboard
-    participant AI as AI Auto-Fix Engine
-    participant EPFO as EPFO Employer/Field Office
-
-    Citizen->>Saral: Logs in with 12-digit UAN & OTP
-    Saral->>Saral: Runs Pre-Claim Diagnostics
-    
-    alt Issue Detected (e.g., Name Mismatch, Overlap)
-        Saral-->>Citizen: Haults claim & highlights exact discrepancy
-        Citizen->>AI: Clicks "Launch Auto-Fix"
-        AI-->>Citizen: Instantly drafts official Joint Declaration / Form 13
-        Citizen->>EPFO: e-Signs and submits generated document digitally
-        EPFO-->>Citizen: Routes to Employer for instant digital approval
-    else Ledger is Clean
-        Saral-->>Citizen: Green light given (All KYC verified)
-        Citizen->>EPFO: Submits Form 19 (Final Settlement) successfully
-    end
-`
+![User Journey Diagram](docs/user-journey.png)
 
 ---
 
-## 🤝 Transparency & "How We Built This"
+## ?? Transparency & "How We Built This"
 
 In the spirit of honesty and open engineering, I want to be completely transparent about how this project was brought to life for this hackathon. **This project was heavily co-created alongside AI:**
 
@@ -52,42 +31,21 @@ I acted as the architect, prompt engineer, and reviewer, guiding the AI to piece
 
 ---
 
-## 🤖 The AI Engine & System Architecture
+## ?? The AI Engine & System Architecture
 
 The platform features an intelligent chatbot and an "Auto-Fix" engine that drafts legal documents. Here is how the application state communicates with the AI models:
 
-`mermaid
-graph LR
-    subgraph Frontend [Next.js App Router]
-        UI[User Interface]
-        State[Global Scenario Context]
-        UI <-->|Reads/Updates| State
-    end
-
-    subgraph Backend [AI API Routing]
-        ServerAction[Secure Server Action]
-        Groq[Groq / OpenAI API Endpoint]
-        ServerAction -->|1. Injects Profile Data & Prompt| Groq
-        Groq -->|2. Returns Legal Draft / Chat Answer| ServerAction
-    end
-
-    State -->|Context (Mismatch, Merge, etc.)| ServerAction
-    ServerAction -->|Renders Formatted Document| UI
-    
-    style Frontend fill:#f8fafc,stroke:#0f172a,stroke-width:2px
-    style Backend fill:#f0fdfa,stroke:#0f172a,stroke-width:2px
-    style Groq fill:#2dd4bf,stroke:#0f172a,stroke-width:2px,color:#0f172a
-`
+![AI System Architecture](docs/ai-architecture.png)
 
 **Current Live Demo API (Groq):** 
-To ensure the live demo stays up and responds instantly under heavy testing traffic, the live Next.js backend currently routes requests to the **Groq API** (using the qwen/qwen3.8-27b model). This prevents rate-limit crashes and keeps the UI snappy for judges and testers.
+To ensure the live demo stays up and responds instantly under heavy testing traffic, the live Next.js backend currently routes requests to the **Groq API** (using the `qwen/qwen3.8-27b` model). This prevents rate-limit crashes and keeps the UI snappy for judges and testers.
 
 **Production Recommendation (OpenAI):**
-The architecture is entirely provider-agnostic. For the absolute best response quality—especially for complex, multi-lingual EPFO policy questions—you can easily swap in an **OpenAI API Key** (e.g., gpt-4o) by simply changing the environment variable and endpoint. 
+The architecture is entirely provider-agnostic. For the absolute best response quality�especially for complex, multi-lingual EPFO policy questions�you can easily swap in an **OpenAI API Key** (e.g., `gpt-4o`) by simply changing the environment variable and endpoint. 
 
 ---
 
-## ✨ Key Features
+## ? Key Features
 
 - **Pre-Claim Diagnostics**: Uses a custom mismatch engine to cross-reference UAN, PAN, and Aadhaar data *before* filing, drastically reducing rejection rates.
 - **Contextual 'Check Before Filing' Modules**: Simulates realistic blockers like Name Mismatches, Service Overlaps (Branch Merges), and Missing e-Nominations.
@@ -97,7 +55,7 @@ The architecture is entirely provider-agnostic. For the absolute best response q
 
 ---
 
-## 🛠️ Tech Stack
+## ??? Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Styling**: Tailwind CSS, Framer Motion (Animations)
@@ -107,28 +65,28 @@ The architecture is entirely provider-agnostic. For the absolute best response q
 
 ---
 
-## 💻 Local Development
+## ?? Local Development
 
 1. Clone the repository:
-   \\\ash
+   ```bash
    git clone https://github.com/CodeWithRJ006/saral-pf.git
-   \\\
+   ```
 2. Install dependencies:
-   \\\ash
+   ```bash
    npm install
-   \\\
+   ```
 3. Set up environment variables:
-   Create a \.env.local\ file and add your API Key:
-   \\\env
+   Create a `.env.local` file and add your API Key:
+   ```env
    GROQ_API_KEY=your_api_key_here
    # Or switch the endpoint in src/lib/openai.ts and use OPENAI_API_KEY
-   \\\
+   ```
 4. Run the development server:
-   \\\ash
+   ```bash
    npm run dev
-   \\\
+   ```
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📄 License
+## ?? License
 
 This project is built as a proof-of-concept/hackathon submission. All rights reserved.
