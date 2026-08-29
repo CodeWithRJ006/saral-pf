@@ -1,13 +1,16 @@
-﻿"use client";
+"use client";
 
 import { useScenario } from "@/context/ScenarioContext";
 import { Download, Filter, Building2, Calendar, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 export default function PassbookPage() {
   const { profile } = useScenario();
   const [downloadState, setDownloadState] = useState<"idle" | "downloading" | "success">("idle");
+  const [showOlder, setShowOlder] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState("Filter Year");
 
   const handleDownload = () => {
     setDownloadState("downloading");
@@ -24,6 +27,14 @@ export default function PassbookPage() {
     { month: "May 2026", ee: 4500, er: 3250, eps: 1250, desc: "Contribution for Apr 2026" },
     { month: "Apr 2026", ee: 4500, er: 3250, eps: 1250, desc: "Contribution for Mar 2026" },
     { month: "Mar 2026", ee: 4200, er: 2950, eps: 1250, desc: "Contribution for Feb 2026" },
+  ];
+
+  const olderTransactions = [
+    { month: "Feb 2026", ee: 4200, er: 2950, eps: 1250, desc: "Contribution for Jan 2026" },
+    { month: "Jan 2026", ee: 4200, er: 2950, eps: 1250, desc: "Contribution for Dec 2025" },
+    { month: "Dec 2025", ee: 4000, er: 2800, eps: 1200, desc: "Contribution for Nov 2025" },
+    { month: "Nov 2025", ee: 4000, er: 2800, eps: 1200, desc: "Contribution for Oct 2025" },
+    { month: "Oct 2025", ee: 4000, er: 2800, eps: 1200, desc: "Contribution for Sep 2025" },
   ];
 
   return (
@@ -82,9 +93,39 @@ export default function PassbookPage() {
               <Building2 className="h-4 w-4" />
               <span className="font-medium text-sm">TechCorp India Pvt Ltd</span>
             </div>
-            <button className="flex items-center gap-2 text-[10px] font-medium tracking-widest uppercase text-[#131215]/60 hover:text-[#131215] transition-colors">
-              <Filter className="h-3 w-3" /> Filter Year
-            </button>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setFilterOpen(!filterOpen)}
+                className="flex items-center gap-2 text-[10px] font-medium tracking-widest uppercase text-[#131215]/60 hover:text-[#131215] transition-colors"
+              >
+                <Filter className="h-3 w-3" /> {selectedYear}
+              </button>
+              
+              <AnimatePresence>
+                {filterOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute right-0 top-full mt-2 w-32 bg-white border border-[#131215]/10 shadow-xl z-10"
+                  >
+                    {["All Years", "2026-2027", "2025-2026", "2024-2025"].map(yr => (
+                      <button 
+                        key={yr}
+                        onClick={() => {
+                          setSelectedYear(yr);
+                          setFilterOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-xs text-[#131215]/80 hover:bg-[#F7F5F0] hover:text-[#131215] transition-colors"
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
           
           <div className="overflow-x-auto">
@@ -117,13 +158,38 @@ export default function PassbookPage() {
                     <td className="p-4 text-right font-serif tabular-nums text-[#a3a3a3]">Rs. {tx.eps.toLocaleString('en-IN')}</td>
                   </motion.tr>
                 ))}
+                
+                <AnimatePresence>
+                  {showOlder && olderTransactions.map((tx, idx) => (
+                    <motion.tr 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      key={"older-" + idx} 
+                      className="border-b border-[#131215]/5 hover:bg-[#F7F5F0]/50 transition-colors bg-[#F7F5F0]/20"
+                    >
+                      <td className="p-4 whitespace-nowrap text-[#131215]/80 font-medium flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-[#131215]/40" />
+                        {tx.month}
+                      </td>
+                      <td className="p-4 text-[#131215]/60 text-xs">{tx.desc}</td>
+                      <td className="p-4 text-right font-serif tabular-nums text-[#131215]">Rs. {tx.ee.toLocaleString('en-IN')}</td>
+                      <td className="p-4 text-right font-serif tabular-nums text-[#2c524b]">Rs. {tx.er.toLocaleString('en-IN')}</td>
+                      <td className="p-4 text-right font-serif tabular-nums text-[#a3a3a3]">Rs. {tx.eps.toLocaleString('en-IN')}</td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
           
           <div className="p-4 border-t border-[#131215]/10 text-center">
-            <button className="text-[10px] font-medium tracking-widest uppercase text-[#2c524b] hover:opacity-80 transition-opacity">
-              View Older Transactions
+            <button 
+              onClick={() => setShowOlder(!showOlder)}
+              className="text-[10px] font-medium tracking-widest uppercase text-[#2c524b] hover:opacity-80 transition-opacity"
+            >
+              {showOlder ? "Hide Older Transactions" : "View Older Transactions"}
             </button>
           </div>
         </div>

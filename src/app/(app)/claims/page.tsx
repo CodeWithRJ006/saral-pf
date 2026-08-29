@@ -24,6 +24,7 @@ function ClaimsContent() {
   const [grievanceStatus, setGrievanceStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [showGrievanceModal, setShowGrievanceModal] = useState(false);
   const [showNewClaimModal, setShowNewClaimModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [newClaimStep, setNewClaimStep] = useState<number>(0);
   const [hasFiledClaim, setHasFiledClaim] = useState(false);
 
@@ -211,9 +212,7 @@ function ClaimsContent() {
                               initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.4, delay: 0.5 }}
-                              onClick={() => {
-                                if (scenario === "MISMATCH") setShowJdModal(true);
-                              }}
+                              onClick={() => { if (scenario === "MISMATCH") { setShowJdModal(true); } else { setShowDetailsModal(true); } }}
                               className="min-h-[44px] border border-red-700 bg-red-700 px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase hover:bg-red-800 transition-colors"
                             >
                               {scenario === "MISMATCH" ? "Fix Issue" : "View Details"}
@@ -452,6 +451,82 @@ function ClaimsContent() {
         )}
       </AnimatePresence>
 
+            <AnimatePresence>
+        {showDetailsModal && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-[#131215]/20 backdrop-blur-sm"
+              onClick={() => setShowDetailsModal(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={cubicTransition}
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-md -translate-y-1/2 bg-white border border-[#131215]/10 p-6 shadow-2xl"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="font-serif text-xl font-medium text-[#131215]">Claim Details</h2>
+                  <p className="text-[10px] uppercase tracking-widest text-[#131215]/40 mt-1">Ref: #EPF-8893-XJ</p>
+                </div>
+                <button onClick={() => setShowDetailsModal(false)} className="text-[#131215]/40 hover:text-[#131215]">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <p className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/60 mb-2">Claim Type</p>
+                  <p className="text-sm font-medium text-[#131215]">Form 19 (Final Settlement)</p>
+                </div>
+                
+                <div>
+                  <p className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/60 mb-2">Submitted Documents</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2 border border-[#131215]/10 bg-[#F7F5F0]/50">
+                      <span className="text-xs text-[#131215]">Aadhaar_Card.pdf</span>
+                      <button className="text-[10px] uppercase tracking-widest text-[#2c524b] font-medium">View</button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 border border-[#131215]/10 bg-[#F7F5F0]/50">
+                      <span className="text-xs text-[#131215]">Cancelled_Cheque.jpg</span>
+                      <button className="text-[10px] uppercase tracking-widest text-[#2c524b] font-medium">View</button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 border border-[#131215]/10 bg-[#F7F5F0]/50">
+                      <span className="text-xs text-[#131215]">Form_15G.pdf</span>
+                      <button className="text-[10px] uppercase tracking-widest text-[#2c524b] font-medium">View</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/60 mb-2">Processing History</p>
+                  <div className="space-y-3 relative before:absolute before:inset-y-2 before:left-[3px] before:w-px before:bg-[#131215]/10 pl-4">
+                    <div className="relative">
+                      <div className="absolute -left-[17.5px] top-1.5 h-1.5 w-1.5 rounded-full bg-[#2c524b]" />
+                      <p className="text-xs font-medium text-[#131215]">Claim Submitted</p>
+                      <p className="text-[10px] text-[#131215]/40">12 Oct 2026, 10:45 AM</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-[17.5px] top-1.5 h-1.5 w-1.5 rounded-full bg-[#2c524b]" />
+                      <p className="text-xs font-medium text-[#131215]">Employer Verification Complete</p>
+                      <p className="text-[10px] text-[#131215]/40">14 Oct 2026, 02:10 PM</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-[17.5px] top-1.5 h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      <p className="text-xs font-medium text-[#131215]">Pending at Field Office</p>
+                      <p className="text-[10px] text-[#131215]/40">15 Oct 2026, 09:00 AM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {showNewClaimModal && (
           <>
@@ -578,4 +653,5 @@ export default function ClaimsPage() {
     </Suspense>
   );
 }
+
 
