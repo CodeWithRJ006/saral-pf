@@ -11,6 +11,35 @@ A modernized, AI-native redesign of the EPFO (Employees' Provident Fund Organisa
 
 ---
 
+## 🗺️ How Saral PF Works (The User Journey)
+
+The traditional PF portal lets you submit a claim and wait 20 days, only to get rejected for a tiny data mismatch. **Saral PF catches the error before you even apply** and uses AI to instantly fix it.
+
+`mermaid
+sequenceDiagram
+    autonumber
+    actor Citizen as User
+    participant Saral as Saral PF Dashboard
+    participant AI as AI Auto-Fix Engine
+    participant EPFO as EPFO Employer/Field Office
+
+    Citizen->>Saral: Logs in with 12-digit UAN & OTP
+    Saral->>Saral: Runs Pre-Claim Diagnostics
+    
+    alt Issue Detected (e.g., Name Mismatch, Overlap)
+        Saral-->>Citizen: Haults claim & highlights exact discrepancy
+        Citizen->>AI: Clicks "Launch Auto-Fix"
+        AI-->>Citizen: Instantly drafts official Joint Declaration / Form 13
+        Citizen->>EPFO: e-Signs and submits generated document digitally
+        EPFO-->>Citizen: Routes to Employer for instant digital approval
+    else Ledger is Clean
+        Saral-->>Citizen: Green light given (All KYC verified)
+        Citizen->>EPFO: Submits Form 19 (Final Settlement) successfully
+    end
+`
+
+---
+
 ## 🤝 Transparency & "How We Built This"
 
 In the spirit of honesty and open engineering, I want to be completely transparent about how this project was brought to life for this hackathon. **This project was heavily co-created alongside AI:**
@@ -23,14 +52,37 @@ I acted as the architect, prompt engineer, and reviewer, guiding the AI to piece
 
 ---
 
-## 🤖 The AI Engine (API Choice)
+## 🤖 The AI Engine & System Architecture
 
-The platform features an intelligent chatbot and an "Auto-Fix" engine that drafts legal documents (like Joint Declarations and Form 13). 
+The platform features an intelligent chatbot and an "Auto-Fix" engine that drafts legal documents. Here is how the application state communicates with the AI models:
 
-**Current Live Demo:** 
+`mermaid
+graph LR
+    subgraph Frontend [Next.js App Router]
+        UI[User Interface]
+        State[Global Scenario Context]
+        UI <-->|Reads/Updates| State
+    end
+
+    subgraph Backend [AI API Routing]
+        ServerAction[Secure Server Action]
+        Groq[Groq / OpenAI API Endpoint]
+        ServerAction -->|1. Injects Profile Data & Prompt| Groq
+        Groq -->|2. Returns Legal Draft / Chat Answer| ServerAction
+    end
+
+    State -->|Context (Mismatch, Merge, etc.)| ServerAction
+    ServerAction -->|Renders Formatted Document| UI
+    
+    style Frontend fill:#f8fafc,stroke:#0f172a,stroke-width:2px
+    style Backend fill:#f0fdfa,stroke:#0f172a,stroke-width:2px
+    style Groq fill:#2dd4bf,stroke:#0f172a,stroke-width:2px,color:#0f172a
+`
+
+**Current Live Demo API (Groq):** 
 To ensure the live demo stays up and responds instantly under heavy testing traffic, the live Next.js backend currently routes requests to the **Groq API** (using the qwen/qwen3.8-27b model). This prevents rate-limit crashes and keeps the UI snappy for judges and testers.
 
-**Production Recommendation:**
+**Production Recommendation (OpenAI):**
 The architecture is entirely provider-agnostic. For the absolute best response quality—especially for complex, multi-lingual EPFO policy questions—you can easily swap in an **OpenAI API Key** (e.g., gpt-4o) by simply changing the environment variable and endpoint. 
 
 ---
@@ -45,31 +97,6 @@ The architecture is entirely provider-agnostic. For the absolute best response q
 
 ---
 
-## 🏗️ Architecture Flow
-
-`mermaid
-graph TD
-    A[User] --> B(Next.js Frontend)
-    B --> C{Context Provider / Scenario Engine}
-    
-    C -->|Mock State| D[CLEAN]
-    C -->|Mock State| E[MISMATCH]
-    C -->|Mock State| F[MERGE]
-    C -->|Mock State| G[NOMINATION]
-
-    E --> H((Groq / OpenAI API))
-    F --> H
-    G --> H
-    
-    H -->|Generates| I[Auto-Fix Plan & Joint Declaration]
-    H -->|Answers| Chat[Saral Omni-Chat]
-    
-    B --> J[Smart Dashboard]
-    B --> K[Passbook Ledger]
-    B --> L[Claims Tracker]
-    B --> M[Grievance Engine]
-`
-
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
@@ -77,6 +104,8 @@ graph TD
 - **Data Visualization**: Recharts
 - **Icons**: Lucide React
 - **Language**: TypeScript
+
+---
 
 ## 💻 Local Development
 
