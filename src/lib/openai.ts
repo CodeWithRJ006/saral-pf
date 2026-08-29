@@ -29,7 +29,7 @@ export async function fetchChatCompletion(messages: { role: string; content: str
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "qwen/qwen3.8-27b",
         messages,
         max_tokens: maxTokens,
         temperature,
@@ -57,3 +57,4 @@ export async function fetchChatCompletion(messages: { role: string; content: str
     return "ERROR_API_FAILED";
   }
 }
+
