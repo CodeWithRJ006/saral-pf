@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +42,7 @@ export default function AuthPage() {
                 {/* Disclosure Banner */}
                 <div className="flex justify-center mb-4">
                   <div className="inline-block border border-[#131215]/10 px-3 py-1.5 text-[10px] uppercase tracking-widest text-[#131215]/60 text-center">
-                    Demo prototype — enter any 12-digit UAN and any 6-digit OTP to explore.
+                    Demo prototype â€” enter any 12-digit UAN and any 6-digit OTP to explore.
                   </div>
                 </div>
 
@@ -214,3 +214,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

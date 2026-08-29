@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, Suspense } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -62,6 +62,71 @@ function ClaimsContent() {
       { id: 3, label: "Field Office Review", status: "completed", date: "Oct 18" },
       { id: 4, label: "Bank Credit", status: "completed", date: "Oct 19" },
     ];
+  }
+
+  let modalTitle = "";
+  let modalDiscLabel = "";
+  let modalDiscLeftLabel = "";
+  let modalDiscLeftText = "";
+  let modalDiscRightLabel = "";
+  let modalDiscRightText = "";
+  let modalDraftText = null;
+  let modalBtnText = "Authenticate & Submit";
+  let modalSuccessMsg = "";
+  let modalSuccessSub = "";
+
+  if (scenario === "MISMATCH") {
+    modalTitle = "Auto-Joint Declaration";
+    modalDiscLabel = "Detected Discrepancy";
+    modalDiscLeftLabel = "Aadhaar (Verified)";
+    modalDiscLeftText = profile.panName;
+    modalDiscRightLabel = "UAN Record";
+    modalDiscRightText = profile.name;
+    modalDraftText = (
+      <div className="bg-white border border-[#131215]/10 p-6 text-xs leading-relaxed text-[#131215]">
+        <p className="mb-4 font-bold">To, The Regional PF Commissioner,</p>
+        <p className="mb-4">Sub: Joint Declaration by the member and the employer for correction of Name.</p>
+        <p className="mb-4">I, <span className="font-bold">{profile.panName}</span>, having UAN <span className="font-bold">{profile.uan}</span>, request you to update my name in the EPFO records to match my Aadhaar.</p>
+        <p>The erroneous name <span className="line-through">"{profile.name}"</span> was updated during initial registration.</p>
+      </div>
+    );
+    modalSuccessMsg = "Forwarded to TechCorp India Pvt Ltd for digital approval.";
+    modalSuccessSub = "Employer approval usually takes 2-3 working days.";
+  } else if (scenario === "MERGE") {
+    modalTitle = "Auto-Form 13 Transfer";
+    modalDiscLabel = "Service Overlap Detected";
+    modalDiscLeftLabel = "Previous PF ID";
+    modalDiscLeftText = "MH/PUN/7654321/000/1234567";
+    modalDiscRightLabel = "Status";
+    modalDiscRightText = "Unmerged";
+    modalDraftText = (
+      <div className="bg-white border border-[#131215]/10 p-6 text-xs leading-relaxed text-[#131215]">
+        <p className="mb-4 font-bold">To, The Regional PF Commissioner,</p>
+        <p className="mb-4">Sub: Transfer of EPF Accumulations from previous accounts to current UAN.</p>
+        <p className="mb-4">I, <span className="font-bold">{profile.name}</span>, request you to transfer my EPF balance from MH/PUN/7654321/000/1234567 to my current active UAN <span className="font-bold">{profile.uan}</span>.</p>
+      </div>
+    );
+    modalSuccessMsg = "Form 13 Submitted Successfully.";
+    modalSuccessSub = "Pending Field Office approval for account merger.";
+  } else if (scenario === "NOMINATION") {
+    modalTitle = "Digital e-Nomination";
+    modalDiscLabel = "Compliance Issue";
+    modalDiscLeftLabel = "e-Nomination";
+    modalDiscLeftText = "Not Found";
+    modalDiscRightLabel = "Requirement";
+    modalDiscRightText = "Mandatory for Form 19";
+    modalBtnText = "Authenticate via Aadhaar OTP";
+    modalDraftText = (
+      <div className="bg-white border border-[#131215]/10 p-6 text-xs leading-relaxed text-[#131215]">
+        <p className="mb-4 font-bold">Declaration of Nominee under EPS 1995</p>
+        <p className="mb-4">I hereby nominate the following person to receive the amount that may stand to my credit in the Employees' Provident Fund in the event of my death:</p>
+        <p className="mb-2">Name: <span className="font-bold">Rahul Verma Sr.</span></p>
+        <p className="mb-2">Relation: <span className="font-bold">Father</span></p>
+        <p>Share: <span className="font-bold">100%</span></p>
+      </div>
+    );
+    modalSuccessMsg = "Nominee Saved Successfully.";
+    modalSuccessSub = "Aadhaar e-Sign verification completed.";
   }
 
   const handleFix = () => {
@@ -228,19 +293,17 @@ function ClaimsContent() {
                               </p>
                               <div className="flex flex-col sm:flex-row gap-3">
                                 <button 
-                                  onClick={() => { if (scenario === "MISMATCH") { setShowJdModal(true); } else { setShowDetailsModal(true); } }}
+                                  onClick={() => setShowJdModal(true)}
                                   className="min-h-[44px] border border-red-700 bg-red-700 px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase hover:bg-red-800 transition-colors"
                                 >
-                                  {scenario === "MISMATCH" ? "Fix Issue" : "View Details"}
+                                  Fix Issue
                                 </button>
-                                {scenario === "MISMATCH" && (
-                                  <button 
-                                    onClick={() => setShowJdModal(true)}
-                                    className="min-h-[44px] border border-red-700 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-red-700 uppercase hover:bg-red-700/5 transition-colors"
-                                  >
-                                    Launch Auto-Fix
-                                  </button>
-                                )}
+                                <button 
+                                  onClick={() => setShowJdModal(true)}
+                                  className="min-h-[44px] border border-red-700 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-red-700 uppercase hover:bg-red-700/5 transition-colors"
+                                >
+                                  Launch Auto-Fix
+                                </button>
                               </div>
                             </motion.div>
                           )}
@@ -261,12 +324,12 @@ function ClaimsContent() {
             <div className="space-y-6">
               <div>
                 <p className="text-[10px] tracking-widest uppercase text-[#131215]/40 mb-1">Claimed Amount</p>
-                <p className="font-serif text-3xl text-[#131215] tabular-nums">â‚¹3,50,000</p>
+                <p className="font-serif text-3xl text-[#131215] tabular-nums">Ã¢â€šÂ¹3,50,000</p>
               </div>
               <div>
                 <p className="text-[10px] tracking-widest uppercase text-[#131215]/40 mb-1">Target Account</p>
                 <p className="text-sm font-medium text-[#131215]">HDFC Bank</p>
-                <p className="text-xs text-[#131215]/60">â€¢â€¢â€¢â€¢ 4012</p>
+                <p className="text-xs text-[#131215]/60">Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ 4012</p>
               </div>
             </div>
           </div>
@@ -364,7 +427,7 @@ function ClaimsContent() {
                       </svg>
                     </div>
                     <p className="text-sm font-medium mb-2 text-center">Forwarded to TechCorp India Pvt Ltd for digital approval.</p>
-                    <p className="text-xs text-[#131215]/60 mt-2 text-center mb-6">Employer approval usually takes 2â€“3 working days.</p>
+                    <p className="text-xs text-[#131215]/60 mt-2 text-center mb-6">Employer approval usually takes 2Ã¢â‚¬â€œ3 working days.</p>
                     <button 
                       onClick={() => setShowJdModal(false)}
                       className="min-h-[44px] w-full border border-[#131215]/10 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-[#131215] uppercase transition-colors hover:bg-[#131215]/5"
@@ -455,7 +518,7 @@ function ClaimsContent() {
                         />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium mb-2 text-center">Grievance filed â€” reference #EPFiGMS-88392X</p>
+                    <p className="text-sm font-medium mb-2 text-center">Grievance filed Ã¢â‚¬â€ reference #EPFiGMS-88392X</p>
                     <p className="text-xs text-[#131215]/60 mt-2 text-center mb-6">You will receive an SMS update within 24 hours.</p>
                     <button 
                       onClick={() => setShowGrievanceModal(false)}
@@ -617,7 +680,7 @@ function ClaimsContent() {
 
                     <div>
                       <p className="text-[10px] font-medium tracking-widest uppercase text-[#131215]/40 mb-2">Estimated Amount</p>
-                      <p className="font-serif text-4xl text-[#131215]">â‚¹3,50,000 <span className="text-[10px] uppercase font-sans tracking-widest text-amber-700 bg-amber-50 px-1.5 py-0.5 border border-amber-700/20 rounded-sm ml-2 align-middle">(Simulated)</span></p>
+                      <p className="font-serif text-4xl text-[#131215]">Ã¢â€šÂ¹3,50,000 <span className="text-[10px] uppercase font-sans tracking-widest text-amber-700 bg-amber-50 px-1.5 py-0.5 border border-amber-700/20 rounded-sm ml-2 align-middle">(Simulated)</span></p>
                     </div>
 
                     <div className="pt-6 border-t border-[#131215]/10">
@@ -673,6 +736,8 @@ export default function ClaimsPage() {
     </Suspense>
   );
 }
+
+
 
 
 
