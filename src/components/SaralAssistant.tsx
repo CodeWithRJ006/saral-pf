@@ -4,22 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
 import { fetchChatCompletion } from "@/lib/openai";
-
-const SYSTEM_PROMPT = `You are Saral AI, an intelligent assistant built to simplify the EPFO provident fund experience for Indian citizens. 
-You have access to this user's mock account:
-
-UAN: 100987654321
-Member Name: Rahul Sharma (Aadhaar) / R. Sharma (UAN record) — 1 letter mismatch flagged
-Current Employer: TechCorp India Pvt Ltd
-PF Balance: Rs. 12,34,850
-KYC Status: Aadhaar seeded, Bank verified, PAN linked, Name mismatch flagged
-Active Claim: Form 19 filed 8 days ago, stuck at Field Office stage, SLA breached
-
-Your instructions:
-1. Always respond in English by default. Use simple, clear, and very concise English (max 2-3 sentences).
-2. Answer questions about the user's claim status, guide them to fix the name mismatch via Joint Declaration, or explain their passbook.
-3. If the user asks who you are or what Saral AI is, explain that Saral AI is a next-generation AI assistant designed to demystify PF management, instantly spot claim blockers (like KYC mismatches), and automatically draft forms like the Joint Declaration to prevent claim rejections.
-4. Be warm and direct. Put the most important information first.`;
+import { useScenario } from "@/context/ScenarioContext";
 
 const cubicTransition = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
@@ -30,6 +15,8 @@ interface Message {
 }
 
 export function SaralAssistant() {
+  const { scenario, profile } = useScenario();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: "msg-0", role: "assistant", content: "Namaste. I am Saral. How can I help you with your PF account today?" }
@@ -37,26 +24,34 @@ export function SaralAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
-  const apiFailed = false; // Forced to false so it never disables
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
+  // Rate limiting to protect the free tier
   const [callCount, setCallCount] = useState(0);
+  const MAX_CALLS = 10; // Max live calls per session component lifecycle
   const [cache, setCache] = useState<Record<string, string>>({});
   const [isLiveCalling, setIsLiveCalling] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const quickReplies = [
-    "Why is my claim delayed?",
-    "How do I fix the name mismatch?",
-    "What is EPFiGMS?"
-  ];
+  // Dynamic quick replies based on scenario
+  let quickReplies: string[] = [];
+  if (scenario === "MISMATCH") {
+    quickReplies = ["How do I fix the name mismatch?", "What is a Joint Declaration?", "Why is my claim delayed?"];
+  } else if (scenario === "MERGE") {
+    quickReplies = ["Why is there a service overlap?", "What is Form 13?", "How do I transfer my PF?"];
+  } else if (scenario === "NOMINATION") {
+    quickReplies = ["How do I add a nominee?", "Is e-Nomination mandatory?", "Can I file Form 19 without it?"];
+  } else {
+    quickReplies = ["How do I withdraw my PF?", "What is Form 19?", "When will the money reach my bank?"];
+  }
 
-  const faqs = [
-    { q: "Why is my claim delayed?", a: "Claims are usually delayed due to KYC mismatches, pending employer approvals, or overlapping service histories. Please check your 'Identity & KYC' section." },
-    { q: "How do I fix the name mismatch?", a: "You can submit a Joint Declaration form online. The system can auto-draft this for you if you click 'Resolve via Auto-Joint Declaration' in the Dashboard." },
-    { q: "What is EPFiGMS?", a: "EPFiGMS is the official grievance management system of EPFO. If your claim breaches the SLA (e.g. 7 days), you can automatically escalate the issue there." }
-  ];
+  // Reset conversation when scenario changes
+  useEffect(() => {
+    setMessages([{ id: "msg-0", role: "assistant", content: "Namaste. I am Saral. How can I help you with your PF account today?" }]);
+    setShowQuickReplies(true);
+    setInputValue("");
+    setIsTyping(false);
+  }, [scenario]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,7 +61,7 @@ export function SaralAssistant() {
     if (isOpen) {
       scrollToBottom();
     }
-  }, [messages, isOpen, isTyping, apiFailed, expandedFaq]);
+  }, [messages, isOpen, isTyping]);
 
   const handleSend = async (content: string) => {
     if (!content.trim()) return;
@@ -80,7 +75,7 @@ export function SaralAssistant() {
     setInputValue("");
     setIsTyping(true);
 
-    const cacheKey = `mock_session_${content.trim().toLowerCase()}`;
+    const cacheKey = `${scenario}_${content.trim().toLowerCase()}`;
 
     // 1. Check cache first
     if (cache[cacheKey]) {
@@ -91,26 +86,53 @@ export function SaralAssistant() {
           content: cache[cacheKey]
         }]);
         setIsTyping(false);
-      }, 600); // Artificial short delay for cached response
+      }, 400); 
       return;
     }
 
-    // 2. Live API Call
+    // 2. Rate limit check
+    if (callCount >= MAX_CALLS) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: "To protect the free tier demo rate limits, you have reached the maximum number of live AI calls for this session. Please switch scenarios to reset, or ask one of the cached questions."
+        }]);
+        setIsTyping(false);
+      }, 400);
+      return;
+    }
+
+    // 3. Live API Call
     setIsLiveCalling(true);
+    setCallCount(prev => prev + 1);
+
+    const systemPrompt = `You are Saral AI, an intelligent assistant built to simplify the EPFO provident fund experience for Indian citizens. 
+You have access to this user's mock account:
+UAN: ${profile.uan}
+Member Name: ${profile.name} (UAN record) vs ${profile.panName} (Aadhaar record)
+Current Scenario: ${scenario} (${scenario === "MISMATCH" ? "Name mismatch flagged" : scenario === "MERGE" ? "Multiple unmerged accounts" : scenario === "NOMINATION" ? "Missing e-Nomination" : "All Clear"})
+
+Your instructions:
+1. Always respond in the language the user writes in (English, Hindi, Hinglish, etc.).
+2. Keep responses simple, clear, and very concise (max 2-3 sentences).
+3. Base your advice strictly on their current scenario (${scenario}).
+4. If they ask what Saral AI is, explain that it's a next-generation AI assistant designed to demystify PF management and auto-fix claim blockers.
+5. Put the most important information first, formatted plainly.`;
 
     const apiMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       ...newMessages.map(m => ({ role: m.role, content: m.content }))
     ];
 
-    const response = await fetchChatCompletion(apiMessages, 200, 0.3); // max 200 tokens
+    const response = await fetchChatCompletion(apiMessages, 200, 0.3);
     
     setIsLiveCalling(false);
     setIsTyping(false);
 
     let finalResponse = response;
     if (response === "ERROR_API_FAILED") {
-      finalResponse = "Network issue. Using fallback: To fix your issue, you can file a Joint Declaration form from the Dashboard.";
+      finalResponse = "Network issue or rate limit reached on Groq API. Please check your API key and rate limit quotas.";
     }
     
     setCache(prev => ({ ...prev, [cacheKey]: finalResponse }));
@@ -205,42 +227,12 @@ export function SaralAssistant() {
                   </div>
                 </div>
               )}
-
-              {/* API Failed State -> Static FAQs */}
-              {apiFailed && (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-start">
-                    <div className="max-w-[85%] bg-[#F7F5F0] text-[#131215] text-sm leading-relaxed border border-red-700/20 px-4 py-3">
-                      Saral is unavailable right now. Here are answers to common questions:
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    {faqs.map((faq, idx) => (
-                      <div key={idx} className="border border-[#131215]/10 bg-white overflow-hidden transition-all">
-                        <button 
-                          onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                          className="w-full text-left px-4 py-3 text-xs font-medium text-[#131215] hover:bg-[#131215]/5 transition-colors flex justify-between items-center"
-                        >
-                          {faq.q}
-                          <span className="text-[#131215]/40">{expandedFaq === idx ? 'Ã¢Ë†â€™' : '+'}</span>
-                        </button>
-                        {expandedFaq === idx && (
-                          <div className="px-4 pb-3 pt-1 text-xs text-[#131215]/70 leading-relaxed border-t border-[#131215]/5 bg-[#F7F5F0]/50">
-                            {faq.a}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
               
               <div ref={messagesEndRef} />
             </div>
 
             {/* Quick Replies */}
-            {showQuickReplies && messages.length === 1 && !isTyping && !apiFailed && (
+            {showQuickReplies && messages.length === 1 && !isTyping && (
               <div className="px-6 pb-4 flex flex-col gap-2">
                 {quickReplies.map((reply, idx) => (
                   <button
@@ -283,6 +275,3 @@ export function SaralAssistant() {
     </>
   );
 }
-
-
-
