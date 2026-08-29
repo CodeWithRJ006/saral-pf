@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, Suspense } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -11,14 +11,12 @@ const cubicTransition = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
 function ClaimsContent() {
   const searchParams = useSearchParams();
-  const { scenario, profile } = useScenario();
+  const { scenario, profile, jdStatus, setJdStatus } = useScenario();
   const hasMismatch = scenario === "MISMATCH";
   const autoFixTriggered = searchParams.get("fix") === "true";
   const prefersReducedMotion = useReducedMotion();
 
-  const [jdStatus, setJdStatus] = useState<"idle" | "submitting" | "success">(
-    autoFixTriggered && hasMismatch ? "idle" : "idle"
-  );
+
   const [showJdModal, setShowJdModal] = useState(autoFixTriggered && hasMismatch);
 
   const [grievanceStatus, setGrievanceStatus] = useState<"idle" | "submitting" | "success">("idle");
@@ -188,42 +186,64 @@ function ClaimsContent() {
                       </p>
 
                       {step.status === "error" && (
-                        <div className="mt-4 border border-red-700 p-4 max-w-md">
-                          <motion.p 
-                            initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3, delay: 0.3 }}
-                            className="text-[10px] font-medium tracking-widest uppercase text-red-700 mb-2 flex items-center gap-2"
-                          >
-                            Claim Halted
-                            {grievanceStatus === "success" && (
-                              <span className="text-[9px] font-medium tracking-widest uppercase text-amber-700 border border-amber-700/20 bg-amber-50 px-1.5 py-0.5 rounded-sm">
-                                Grievance Raised
-                              </span>
-                            )}
-                          </motion.p>
-                          <p className="text-sm text-[#131215] mb-4">
-                            {scenario === "MISMATCH" && "Name mismatch detected between Aadhaar and UAN records."}
-                            {scenario === "MERGE" && "Multiple unmerged accounts detected. Service overlap requires Form 13 transfer before withdrawal."}
-                            {scenario === "NOMINATION" && "Missing e-Nomination. Mandatory Aadhaar-signed nomination required for Form 19/10C."}
-                          </p>
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <motion.button 
-                              initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.4, delay: 0.5 }}
-                              onClick={() => { if (scenario === "MISMATCH") { setShowJdModal(true); } else { setShowDetailsModal(true); } }}
-                              className="min-h-[44px] border border-red-700 bg-red-700 px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase hover:bg-red-800 transition-colors"
+                        <div className="mt-4 border p-4 max-w-md transition-colors duration-500 min-h-[160px] flex flex-col justify-center border-red-700 bg-white">
+                          {(scenario === "MISMATCH" && jdStatus === "success") ? (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-center py-2"
                             >
-                              {scenario === "MISMATCH" ? "Fix Issue" : "View Details"}
-                            </motion.button>
-                            <button 
-                              onClick={() => setShowJdModal(true)}
-                              className="min-h-[44px] border border-red-700 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-red-700 uppercase hover:bg-red-700/5 transition-colors"
-                            >
-                              Launch Auto-Fix
-                            </button>
-                          </div>
+                              <div className="mb-4 mx-auto flex h-12 w-12 items-center justify-center bg-[#F7F5F0] border border-[#2c524b]/20 rounded-full shadow-[0_0_20px_rgba(44,82,75,0.15)]">
+                                <svg className="h-6 w-6 text-[#2c524b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
+                                  <motion.path 
+                                    initial={{ pathLength: prefersReducedMotion ? 1 : 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                    d="M20 6L9 17l-5-5" 
+                                  />
+                                </svg>
+                              </div>
+                              <p className="text-sm font-medium mb-1 text-[#131215]">Forwarded to Employer</p>
+                              <p className="text-xs text-[#131215]/60 mb-4">TechCorp India Pvt Ltd approval pending (Est. 2-3 days)</p>
+                              <button 
+                                className="w-full border border-[#131215]/10 bg-[#F7F5F0] px-4 py-2.5 text-[10px] font-medium tracking-widest text-[#131215] uppercase transition-colors hover:bg-[#131215]/5"
+                              >
+                                Track this request
+                              </button>
+                            </motion.div>
+                          ) : (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                              <p className="text-[10px] font-medium tracking-widest uppercase text-red-700 mb-2 flex items-center gap-2">
+                                Claim Halted
+                                {grievanceStatus === "success" && (
+                                  <span className="text-[9px] font-medium tracking-widest uppercase text-amber-700 border border-amber-700/20 bg-amber-50 px-1.5 py-0.5 rounded-sm">
+                                    Grievance Raised
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-sm text-[#131215] mb-4">
+                                {scenario === "MISMATCH" && "Name mismatch detected between Aadhaar and UAN records. This will cause a rejection."}
+                                {scenario === "MERGE" && "Multiple unmerged accounts detected. Service overlap requires Form 13 transfer before withdrawal."}
+                                {scenario === "NOMINATION" && "Missing e-Nomination. Mandatory Aadhaar-signed nomination required for Form 19/10C."}
+                              </p>
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                <button 
+                                  onClick={() => { if (scenario === "MISMATCH") { setShowJdModal(true); } else { setShowDetailsModal(true); } }}
+                                  className="min-h-[44px] border border-red-700 bg-red-700 px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase hover:bg-red-800 transition-colors"
+                                >
+                                  {scenario === "MISMATCH" ? "Fix Issue" : "View Details"}
+                                </button>
+                                {scenario === "MISMATCH" && (
+                                  <button 
+                                    onClick={() => setShowJdModal(true)}
+                                    className="min-h-[44px] border border-red-700 bg-transparent px-4 py-2 text-[10px] font-medium tracking-widest text-red-700 uppercase hover:bg-red-700/5 transition-colors"
+                                  >
+                                    Launch Auto-Fix
+                                  </button>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -653,5 +673,6 @@ export default function ClaimsPage() {
     </Suspense>
   );
 }
+
 
 

@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 export type ScenarioType = "CLEAN" | "MISMATCH" | "MERGE" | "NOMINATION";
+export type JdStatus = "idle" | "submitting" | "success";
 
 interface Profile {
   name: string;
@@ -16,6 +17,8 @@ interface ScenarioContextType {
   scenario: ScenarioType;
   setScenario: (s: ScenarioType) => void;
   profile: Profile;
+  jdStatus: JdStatus;
+  setJdStatus: (status: JdStatus) => void;
 }
 
 const profiles: Record<ScenarioType, Profile> = {
@@ -53,9 +56,15 @@ const ScenarioContext = createContext<ScenarioContextType | undefined>(undefined
 
 export function ScenarioProvider({ children }: { children: ReactNode }) {
   const [scenario, setScenario] = useState<ScenarioType>("CLEAN");
+  const [jdStatus, setJdStatus] = useState<JdStatus>("idle");
+
+  // Reset JD status if scenario changes
+  useEffect(() => {
+    setJdStatus("idle");
+  }, [scenario]);
 
   return (
-    <ScenarioContext.Provider value={{ scenario, setScenario, profile: profiles[scenario] }}>
+    <ScenarioContext.Provider value={{ scenario, setScenario, profile: profiles[scenario], jdStatus, setJdStatus }}>
       {children}
     </ScenarioContext.Provider>
   );

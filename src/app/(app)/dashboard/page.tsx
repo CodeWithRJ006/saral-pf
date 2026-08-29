@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
@@ -10,7 +10,7 @@ import { AlertTriangle, CheckCircle2, FileText, Share2, ArrowRight } from "lucid
 
 const PIE_COLORS = ["#131215", "#2c524b", "#a3a3a3"];
 
-const PreClaimDiagnostic = ({ profile }: { profile: any }) => {
+const PreClaimDiagnostic = ({ profile, jdStatus }: { profile: any, jdStatus: string }) => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -54,37 +54,51 @@ const PreClaimDiagnostic = ({ profile }: { profile: any }) => {
           </div>
         )}
       </div>
-
       {step >= 3 && (
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="mt-8 pt-8 border-t border-[#131215]/10 font-sans"
         >
-          <div className="mb-6 w-full h-40 bg-[#F7F5F0] border border-[#131215]/5 flex items-center justify-center overflow-hidden relative">
-            <svg viewBox="0 0 200 120" className="w-full h-full text-[#2c524b]" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-              <g strokeWidth="0.5" strokeOpacity="0.3">
-                <path d="M 10 90 L 100 0 M 20 100 L 120 0 M 30 110 L 140 0 M 40 120 L 160 0 M 60 120 L 180 0 M 80 120 L 200 0 M 100 120 L 220 0" />
-              </g>
-              <path d="M 100 45 C 90 45 85 55 85 65 C 85 70 75 85 75 120 L 125 120 C 125 85 115 70 115 65 C 115 55 110 45 100 45 Z" />
-              <path d="M 95 65 C 95 65 100 70 105 65" />
-              <path d="M 45 55 L 75 45 L 65 85 L 35 95 Z" fill="#F7F5F0" />
-              <path d="M 48 65 L 60 61 M 45 75 L 55 72" />
-              <path d="M 155 55 L 125 45 L 135 85 L 165 95 Z" fill="#F7F5F0" />
-              <path d="M 148 61 L 152 65 M 135 72 L 145 75" />
-              <path d="M 80 40 C 90 25 110 25 120 40" strokeDasharray="3 3" />
-            </svg>
-          </div>
-          
-          <h3 className="font-serif text-2xl text-[#131215] mb-2">This will cause a rejection.</h3>
-          <p className="text-sm text-[#131215]/70 mb-6 leading-relaxed">
-            Aadhaar: <span className="font-medium">{profile.panName}</span> &middot; UAN record: <span className="font-medium">{profile.name}</span> — EPFO rejects claims over exact-match failures like this.
-          </p>
-          <Link 
-            href="/claims?fix=true"
-            className="inline-flex min-h-[44px] items-center justify-center bg-[#2c524b] px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase transition-colors hover:bg-[#2c524b]/90 w-full"
-          >
-            Generate Joint Declaration
-          </Link>
+          {jdStatus === "success" ? (
+            <div className="flex flex-col items-center justify-center text-center py-4">
+              <div className="h-12 w-12 bg-[#F7F5F0] border border-[#2c524b]/20 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle2 className="h-6 w-6 text-[#2c524b]" />
+              </div>
+              <h3 className="text-sm font-medium text-[#131215] mb-1">Joint Declaration Forwarded</h3>
+              <p className="text-xs text-[#131215]/60 mb-6">Pending employer approval from TechCorp India Pvt Ltd. (Est. 2-3 days)</p>
+              <Link href="/claims" className="w-full inline-flex min-h-[44px] items-center justify-center bg-[#131215] px-4 py-2 text-[10px] font-medium tracking-widest text-[#F7F5F0] uppercase transition-colors hover:bg-[#131215]/90">
+                Track Status
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6 w-full h-40 bg-[#F7F5F0] border border-[#131215]/5 flex items-center justify-center overflow-hidden relative">
+                <svg viewBox="0 0 200 120" className="w-full h-full text-[#2c524b]" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                  <g strokeWidth="0.5" strokeOpacity="0.3">
+                    <path d="M 10 90 L 100 0 M 20 100 L 120 0 M 30 110 L 140 0 M 40 120 L 160 0 M 60 120 L 180 0 M 80 120 L 200 0 M 100 120 L 220 0" />
+                  </g>
+                  <path d="M 100 45 C 90 45 85 55 85 65 C 85 70 75 85 75 120 L 125 120 C 125 85 115 70 115 65 C 115 55 110 45 100 45 Z" />
+                  <path d="M 95 65 C 95 65 100 70 105 65" />
+                  <path d="M 45 55 L 75 45 L 65 85 L 35 95 Z" fill="#F7F5F0" />
+                  <path d="M 48 65 L 60 61 M 45 75 L 55 72" />
+                  <path d="M 155 55 L 125 45 L 135 85 L 165 95 Z" fill="#F7F5F0" />
+                  <path d="M 148 61 L 152 65 M 135 72 L 145 75" />
+                  <path d="M 80 40 C 90 25 110 25 120 40" strokeDasharray="3 3" />
+                </svg>
+              </div>
+              
+              <h3 className="font-serif text-2xl text-[#131215] mb-2">This will cause a rejection.</h3>
+              <p className="text-sm text-[#131215]/70 mb-6 leading-relaxed">
+                Aadhaar: <span className="font-medium">{profile.panName}</span> &middot; UAN record: <span className="font-medium">{profile.name}</span> - EPFO rejects claims over exact-match failures like this.
+              </p>
+              <Link 
+                href="/claims?fix=true"
+                className="inline-flex min-h-[44px] items-center justify-center bg-[#2c524b] px-4 py-2 text-[10px] font-medium tracking-widest text-white uppercase transition-colors hover:bg-[#2c524b]/90 w-full"
+              >
+                Generate Joint Declaration
+              </Link>
+            </>
+          )}
         </motion.div>
       )}
     </div>
@@ -92,7 +106,7 @@ const PreClaimDiagnostic = ({ profile }: { profile: any }) => {
 };
 
 export default function DashboardPage() {
-  const { profile, scenario, setScenario } = useScenario();
+  const { profile, scenario, setScenario, jdStatus } = useScenario();
 
   const employeeShare = 350000;
   const employerShare = 320000;
@@ -359,7 +373,7 @@ export default function DashboardPage() {
             )}
 
             {scenario === "MISMATCH" && (
-              <PreClaimDiagnostic profile={profile} />
+              <PreClaimDiagnostic profile={profile} jdStatus={jdStatus} />
             )}
 
             {scenario === "MERGE" && (
@@ -441,7 +455,7 @@ export default function DashboardPage() {
               </div>
             )}
             
-            {scenario === "MISMATCH" && (
+            {scenario === "MISMATCH" && jdStatus !== "success" && (
               <div className="mt-6 border border-[#131215]/10 bg-white p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -490,3 +504,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
