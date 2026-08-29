@@ -56,13 +56,22 @@ export default function AuthPage() {
 
                 <div className="space-y-8">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-medium text-[#131215]/60 uppercase tracking-widest">
-                      Universal Account Number
-                    </label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-medium text-[#131215]/60 uppercase tracking-widest">
+                        Universal Account Number
+                      </label>
+                      <span className="text-[10px] font-medium tracking-widest text-[#131215]/40 tabular-nums">
+                        {uan.length}/12
+                      </span>
+                    </div>
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={uan}
-                      onChange={(e) => setUan(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                        setUan(val);
+                      }}
                       className="w-full min-h-[44px] rounded-none border-b border-[#131215]/20 bg-transparent py-2 text-lg font-serif tabular-nums text-[#131215] placeholder-[#131215]/20 outline-none transition-colors focus:border-[#2c524b]"
                       placeholder="1009 8472 9100"
                     />
@@ -89,7 +98,8 @@ export default function AuthPage() {
 
                   <button
                     onClick={handleStartAuth}
-                    className="w-full min-h-[44px] border border-[#2c524b] px-4 py-4 text-xs font-medium tracking-widest text-white bg-[#2c524b] uppercase transition-colors hover:bg-[#1e3b35] flex items-center justify-center gap-3"
+                    disabled={uan.length !== 12}
+                    className="w-full min-h-[44px] border border-[#2c524b] px-4 py-4 text-xs font-medium tracking-widest text-white bg-[#2c524b] uppercase transition-colors hover:bg-[#1e3b35] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                   >
                     <span>Authenticate</span>
                   </button>
