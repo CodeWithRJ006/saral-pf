@@ -1,24 +1,20 @@
-"use client";
+﻿"use client";
 
 import { useScenario } from "@/context/ScenarioContext";
-import { Download, Filter, Building2, Calendar, CheckCircle2 } from "lucide-react";
+import { Download, Filter, Building2, Calendar, CheckCircle2, FileSpreadsheet, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 export default function PassbookPage() {
   const { profile } = useScenario();
-  const [downloadState, setDownloadState] = useState<"idle" | "downloading" | "success">("idle");
+  const [pdfDownloadState, setPdfDownloadState] = useState<"idle" | "downloading" | "success">("idle");
+  const [excelDownloadState, setExcelDownloadState] = useState<"idle" | "downloading" | "success">("idle");
   const [showOlder, setShowOlder] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState("Filter Year");
-
-  const handleDownload = () => {
-    setDownloadState("downloading");
-    setTimeout(() => {
-      setDownloadState("success");
-      setTimeout(() => setDownloadState("idle"), 3000);
-    }, 2000);
-  };
 
   const transactions = [
     { month: "Aug 2026", ee: 4500, er: 3250, eps: 1250, desc: "Contribution for Jul 2026" },
@@ -37,6 +33,106 @@ export default function PassbookPage() {
     { month: "Oct 2025", ee: 4000, er: 2800, eps: 1200, desc: "Contribution for Sep 2025" },
   ];
 
+  const allTx = [...transactions, ...olderTransactions];
+
+  const handleDownloadPDF = () => {
+    setPdfDownloadState("downloading");
+    
+    setTimeout(() => {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text("Member Passbook", 14, 22);
+      
+      doc.setFontSize(10);
+      doc.text(UAN: \, 14, 32);
+      doc.text(Name: \, 14, 38);
+      doc.text(Employer: TechCorp India Pvt Ltd, 14, 44);
+      
+      let currentBalance = 670000;
+      
+      const tableData = allTx.map(tx => {
+        const row = [
+          tx.month,
+          tx.desc,
+          Rs. \,
+          Rs. \,
+          Rs. \
+        ];
+        currentBalance -= (tx.ee + tx.er);
+        return row;
+      });
+      
+      autoTable(doc, {
+        startY: 52,
+        head: [["Month", "Description", "Employee (EE)", "Employer (ER)", "Balance"]],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 82, 75] },
+        styles: { fontSize: 8 },
+      });
+      
+      doc.save(EPFO_Passbook_\.pdf);
+      
+      setPdfDownloadState("success");
+      setTimeout(() => setPdfDownloadState("idle"), 3000);
+    }, 800);
+  };
+
+  const handleDownloadExcel = () => {
+    setExcelDownloadState("downloading");
+    
+    setTimeout(() => {
+      let currentBalance = 670000;
+      const excelData = allTx.map(tx => {
+        const row = {
+          "Transaction Date": tx.month,
+          "Description": tx.desc,
+          "Employee Contribution": tx.ee,
+          "Employer Contribution": tx.er,
+          "Running Balance": currentBalance
+        };
+        currentBalance -= (tx.ee + tx.er);
+        return row;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1:E1");
+      
+      worksheet['!views'] = [{ state: 'frozen', ySplit: 1 }];
+      
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const headerAddress = XLSX.utils.encode_col(C) + "1";
+        if (worksheet[headerAddress]) {
+          worksheet[headerAddress].s = { font: { bold: true } };
+        }
+        
+        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+          const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+          if (!worksheet[cellAddress]) continue;
+          if (C >= 2) {
+            worksheet[cellAddress].z = '"₹"#,##0.00';
+          }
+        }
+      }
+
+      worksheet['!cols'] = [
+        { wch: 18 },
+        { wch: 35 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 20 }
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Passbook");
+      XLSX.writeFile(workbook, EPFO_Passbook_\.xlsx);
+      
+      setExcelDownloadState("success");
+      setTimeout(() => setExcelDownloadState("idle"), 3000);
+    }, 800);
+  };
+
   return (
     <div className="space-y-12 pb-24">
       <header className="border-b border-[#131215]/10 pb-8">
@@ -46,28 +142,34 @@ export default function PassbookPage() {
             <p className="text-[10px] tracking-widest text-[#131215]/40 uppercase mt-2">UAN: {profile.uan}</p>
           </div>
           
-          <button 
-            onClick={handleDownload}
-            disabled={downloadState !== "idle"}
-            className="inline-flex items-center gap-2 bg-[#131215] text-[#F7F5F0] px-6 py-3 text-[10px] font-medium tracking-widest uppercase rounded-sm hover:bg-[#131215]/90 transition-colors disabled:opacity-80 w-[160px] justify-center"
-          >
-            {downloadState === "downloading" ? (
-              <>
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="h-3 w-3 border-2 border-[#F7F5F0]/60 border-t-transparent rounded-full" />
-                Generating...
-              </>
-            ) : downloadState === "success" ? (
-              <>
-                <CheckCircle2 className="h-3 w-3 text-green-400" />
-                Downloaded
-              </>
-            ) : (
-              <>
-                <Download className="h-3 w-3" />
-                Download PDF
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={handleDownloadPDF}
+              disabled={pdfDownloadState !== "idle"}
+              className="flex-1 sm:flex-none inline-flex items-center gap-2 bg-white border border-[#131215]/20 text-[#131215] px-4 py-3 text-[10px] font-medium tracking-widest uppercase rounded-sm hover:bg-[#F7F5F0] transition-colors disabled:opacity-80 min-w-[140px] justify-center"
+            >
+              {pdfDownloadState === "downloading" ? (
+                <><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="h-3 w-3 border-2 border-[#131215]/60 border-t-transparent rounded-full" /> PDF...</>
+              ) : pdfDownloadState === "success" ? (
+                <><CheckCircle2 className="h-3 w-3 text-green-600" /> PDF Saved</>
+              ) : (
+                <><FileText className="h-3 w-3" /> Export PDF</>
+              )}
+            </button>
+            <button 
+              onClick={handleDownloadExcel}
+              disabled={excelDownloadState !== "idle"}
+              className="flex-1 sm:flex-none inline-flex items-center gap-2 bg-[#2c524b] text-white px-4 py-3 text-[10px] font-medium tracking-widest uppercase rounded-sm hover:bg-[#1e3b35] transition-colors disabled:opacity-80 min-w-[140px] justify-center"
+            >
+              {excelDownloadState === "downloading" ? (
+                <><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="h-3 w-3 border-2 border-white/60 border-t-transparent rounded-full" /> Excel...</>
+              ) : excelDownloadState === "success" ? (
+                <><CheckCircle2 className="h-3 w-3 text-green-400" /> Excel Saved</>
+              ) : (
+                <><FileSpreadsheet className="h-3 w-3" /> Export Excel</>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
