@@ -45,9 +45,9 @@ export default function PassbookPage() {
       doc.text("Member Passbook", 14, 22);
       
       doc.setFontSize(10);
-      doc.text(UAN: \, 14, 32);
-      doc.text(Name: \, 14, 38);
-      doc.text(Employer: TechCorp India Pvt Ltd, 14, 44);
+      doc.text(`UAN: ${profile.uan}`, 14, 32);
+      doc.text(`Name: ${profile.name}`, 14, 38);
+      doc.text(`Employer: TechCorp India Pvt Ltd`, 14, 44);
       
       let currentBalance = 670000;
       
@@ -55,9 +55,9 @@ export default function PassbookPage() {
         const row = [
           tx.month,
           tx.desc,
-          Rs. \,
-          Rs. \,
-          Rs. \
+          `Rs. ${tx.ee.toLocaleString('en-IN')}`,
+          `Rs. ${tx.er.toLocaleString('en-IN')}`,
+          `Rs. ${currentBalance.toLocaleString('en-IN')}`
         ];
         currentBalance -= (tx.ee + tx.er);
         return row;
@@ -72,7 +72,7 @@ export default function PassbookPage() {
         styles: { fontSize: 8 },
       });
       
-      doc.save(EPFO_Passbook_\.pdf);
+      doc.save(`EPFO_Passbook_${profile.uan}.pdf`);
       
       setPdfDownloadState("success");
       setTimeout(() => setPdfDownloadState("idle"), 3000);
@@ -126,7 +126,7 @@ export default function PassbookPage() {
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Passbook");
-      XLSX.writeFile(workbook, EPFO_Passbook_\.xlsx);
+      XLSX.writeFile(workbook, `EPFO_Passbook_${profile.uan}.xlsx`);
       
       setExcelDownloadState("success");
       setTimeout(() => setExcelDownloadState("idle"), 3000);
